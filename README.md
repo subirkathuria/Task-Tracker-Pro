@@ -42,7 +42,7 @@ Because this app uses SQLite, installation is incredibly simple. It can run on a
 
 3. Configure Security (CRITICAL): 
    Open api.php and change the default login credentials and upload directory:
-   
+   ```bash
    $USER = 'your_secure_username';
    $PASS = 'your_secure_password';
    $UPLOAD_DIR = 'your_hidden_upload_folder/';
