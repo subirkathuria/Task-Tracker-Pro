@@ -19,7 +19,6 @@ const DEFAULT_TABS = [
     { id: 'closed', label: 'Closed' }
 ];
 
-// Fallback logic until backend data loads
 let visibleTabs = DEFAULT_TABS.map(t => t.id);
 
 // --- CUSTOM IN-APP DIALOG SYSTEM ---
@@ -91,6 +90,22 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
+// CHECK IF FILE IS AN IMAGE
+function isImage(fileName) {
+    if (!fileName) return false;
+    const ext = fileName.split('.').pop().toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+}
+
+// OPEN IMAGE IN LIGHTBOX
+function openImagePreview(url, fileName) {
+    document.getElementById('previewImage').src = url;
+    document.getElementById('downloadPreviewBtn').href = url;
+    document.getElementById('downloadPreviewBtn').download = fileName;
+    document.getElementById('imagePreviewModal').classList.remove('hidden');
+}
+
+
 async function api(action, data = null, isForm = false) {
     let options = { method: data ? 'POST' : 'GET' };
     if(data && !isForm) options.body = JSON.stringify(data);
@@ -116,13 +131,10 @@ async function refresh() {
     const data = await api('get_data');
     state = { ...state, ...data };
     
-    // Load Tab Preferences directly from Database
     if (state.settings && state.settings.visible_tabs) {
         try {
             visibleTabs = JSON.parse(state.settings.visible_tabs);
-        } catch(e) {
-            console.error("Failed to parse settings");
-        }
+        } catch(e) { console.error("Failed to parse settings"); }
     }
 
     renderTabs();
@@ -131,7 +143,6 @@ async function refresh() {
     initCalendar();
 }
 
-// --- TAB CUSTOMIZATION LOGIC (Now hits DB) ---
 function openTabSettings() {
     const container = document.getElementById('tabChecklist');
     container.innerHTML = DEFAULT_TABS.map(t => `
@@ -147,9 +158,8 @@ async function saveTabSettings() {
     const checkboxes = document.querySelectorAll('#tabChecklist input[type="checkbox"]:checked');
     visibleTabs = Array.from(checkboxes).map(cb => cb.value);
     
-    if(visibleTabs.length === 0) visibleTabs = ['all']; // Fallback
+    if(visibleTabs.length === 0) visibleTabs = ['all']; 
     
-    // Push settings to backend DB
     await api('save_settings', { key: 'visible_tabs', value: JSON.stringify(visibleTabs) });
     
     if (!visibleTabs.includes(state.filter)) state.filter = visibleTabs[0];
@@ -211,7 +221,6 @@ function render() {
     `}).join('');
 }
 
-// --- FILE SYSTEM ---
 function addFilesToQueue(inputElement, type) {
     for(let i = 0; i < inputElement.files.length; i++) { pendingFiles.push(inputElement.files[i]); }
     inputElement.value = ""; 
@@ -423,6 +432,7 @@ async function openTaskView(id) {
             return `<div><b class="block text-[8px] uppercase text-slate-400 font-black">${k}</b><span class="text-xs sm:text-sm font-semibold text-slate-700 break-words">${v}</span></div>`;
         }).join('');
         
+        // --- INLINE IMAGE LOGIC RENDERER ---
         document.getElementById('historyTimeline').innerHTML = data.history.map(h => {
             let badgeColor = 'bg-indigo-50 text-indigo-600';
             if(h.status === 'on_hold') badgeColor = 'bg-orange-100 text-orange-600';
@@ -434,10 +444,23 @@ async function openTaskView(id) {
                 try {
                     const files = JSON.parse(h.file_name);
                     if(Array.isArray(files)) {
-                        files.forEach(f => { filesLinks += `<a href="uploads_x9kLp7_2026/${f}" target="_blank" class="text-[10px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded">📎 View File</a>`; });
+                        files.forEach(f => { 
+                            const fileUrl = `uploads_x9kLp7_2026/${f}`;
+                            if(isImage(f)) {
+                                filesLinks += `<button type="button" onclick="openImagePreview('${fileUrl}', '${f}')" class="text-[9px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded transition hover:bg-indigo-100">🖼️ View Image</button>`;
+                            } else {
+                                filesLinks += `<a href="${fileUrl}" target="_blank" download class="text-[9px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded transition hover:bg-indigo-100">📎 Download File</a>`;
+                            }
+                        });
                     }
                 } catch(e) {
-                    filesLinks = `<a href="uploads_x9kLp7_2026/${h.file_name}" target="_blank" class="text-[10px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded">📎 View File</a>`;
+                    const f = h.file_name;
+                    const fileUrl = `uploads_x9kLp7_2026/${f}`;
+                    if(isImage(f)) {
+                        filesLinks = `<button type="button" onclick="openImagePreview('${fileUrl}', '${f}')" class="text-[9px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded transition hover:bg-indigo-100">🖼️ View Image</button>`;
+                    } else {
+                        filesLinks = `<a href="${fileUrl}" target="_blank" download class="text-[9px] text-indigo-600 font-bold underline mt-1.5 block w-max bg-indigo-50 px-2 py-1 rounded transition hover:bg-indigo-100">📎 Download File</a>`;
+                    }
                 }
             }
 
@@ -644,6 +667,12 @@ function initCalendar() {
     });
 }
 
-window.onclick = (e) => { if(e.target.classList.contains('fixed') && e.target.id !== 'customDialogOverlay') e.target.classList.add('hidden'); }
+// Allows closing modals (including the lightbox) by clicking the dark overlay
+window.onclick = (e) => { 
+    if(e.target.classList.contains('fixed') && e.target.id !== 'customDialogOverlay') {
+        e.target.classList.add('hidden'); 
+    }
+}
+
 function logout() { fetch('api.php?action=logout'); location.reload(); }
 setInterval(async () => { const res = await fetch('api.php?action=get_data'); if(res.status === 403) location.reload(); }, 60000);
