@@ -1,0 +1,14 @@
+# 1. Prevent Directory Listing
+Options -Indexes
+
+# 2. Deny access to the database
+<Files "tasks.db">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 3. Deny access to .htaccess itself
+<Files ".htaccess">
+    Order allow,deny
+    Deny from all
+</Files>

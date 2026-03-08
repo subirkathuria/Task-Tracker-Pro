@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TaskTracker Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <link rel="stylesheet" href="style.css?v=5000">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
+        <form id="loginForm" class="bg-white p-8 rounded-2xl w-full max-w-sm shadow-2xl">
+            <h2 class="text-2xl font-bold mb-6 text-center">Secure Access</h2>
+            <input type="text" id="loginUser" placeholder="Username" class="w-full border p-2.5 rounded-lg mb-4 outline-indigo-500 text-sm" required>
+            <input type="password" id="loginPass" placeholder="Password" class="w-full border p-2.5 rounded-lg mb-6 outline-indigo-500 text-sm" required>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold hover:bg-indigo-700 text-sm w-full">Sign In</button>
+        </form>
+    </div>
+
+    <div id="app" class="hidden">
+        <nav class="bg-white border-b p-3 md:p-4 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-40 shadow-sm gap-3 sm:gap-0">
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                <span class="text-xl font-black text-indigo-600 tracking-tighter">TT.PRO</span>
+                <input type="text" id="search" oninput="render()" onkeyup="render()" placeholder="Search everything..." class="border p-2 rounded-lg text-sm w-full max-w-[220px] bg-slate-50 outline-indigo-500">
+            </div>
+            <div class="flex flex-wrap gap-2 items-center justify-center sm:justify-end w-full sm:w-auto">
+                <button onclick="showView('board')" class="px-3 py-1.5 bg-slate-100 rounded text-sm font-medium">Board</button>
+                <button onclick="showView('calendar')" class="px-3 py-1.5 bg-slate-100 rounded text-sm font-medium">Calendar</button>
+                <button onclick="openPurge()" class="px-3 py-1.5 text-red-500 bg-red-50 rounded text-sm font-bold shadow-sm">Purge</button>
+                <a href="api.php?action=backup" target="_blank" class="px-3 py-1.5 text-slate-500 text-sm font-medium">Backup</a>
+                <button onclick="openNewTask()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md shadow-indigo-100">+ New Task / Order</button>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-500 text-xs ml-2 transition">Logout</button>
+            </div>
+        </nav>
+
+        <main class="p-4 md:p-6">
+            <div id="boardView">
+                <div class="flex items-center border-b mb-5">
+                    <div class="flex flex-1 gap-4 md:gap-6 text-[11px] md:text-xs font-bold text-gray-400 overflow-x-auto pb-2 whitespace-nowrap no-scrollbar" id="tabContainer">
+                        </div>
+                    <button onclick="openTabSettings()" class="pl-3 pb-2 text-slate-400 hover:text-indigo-600 shrink-0 border-l ml-2 text-sm" title="Customize Tabs">⚙️</button>
+                </div>
+
+                <div id="taskGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5"></div>
+            </div>
+            <div id="calendarView" class="hidden bg-white p-4 md:p-6 rounded-xl border overflow-x-auto text-sm shadow-sm"></div>
+        </main>
+    </div>
+
+    <div id="tabSettingsModal" class="fixed inset-0 bg-black/60 hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full shadow-2xl flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                <h3 class="text-lg font-black text-slate-700">Visible Tabs</h3>
+                <button type="button" onclick="closeModal('tabSettingsModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-2" id="tabChecklist">
+                </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50">
+                <button onclick="saveTabSettings()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="fixed inset-0 bg-black/60 hidden z-[60] flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl max-h-[95vh] flex flex-col overflow-hidden">
+            
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                <h2 class="text-lg font-black text-slate-700">Create Entry</h2>
+                <button type="button" onclick="closeModal('taskModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+
+            <div class="p-4 md:p-6 overflow-y-auto flex-1">
+                <div class="flex bg-slate-200 p-1.5 rounded-lg w-full mb-6 cursor-pointer mt-1">
+                    <div id="btnToggleGeneral" onclick="toggleTaskMode('general')" class="flex-1 text-center py-2 bg-white shadow-sm rounded-md text-sm font-bold text-indigo-700 transition cursor-pointer select-none">General Task</div>
+                    <div id="btnToggleShop" onclick="toggleTaskMode('shop')" class="flex-1 text-center py-2 text-slate-500 rounded-md text-sm font-bold hover:text-indigo-600 transition cursor-pointer select-none">Shop Order</div>
+                </div>
+
+                <form id="taskForm" class="space-y-4">
+                    <input type="hidden" name="custom_task_type" id="taskTypeFlag" value="general">
+                    
+                    <div id="generalTitleBlock">
+                        <input type="text" id="gen_title" placeholder="What needs to be done?" class="w-full border p-2.5 rounded-lg outline-indigo-500 font-bold text-sm">
+                    </div>
+
+                    <div id="shopOrderBlock" class="hidden space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] font-bold text-indigo-500 uppercase block mb-1">Auto Order No.</label>
+                                <input type="text" name="custom_Order No" id="so_order_no" class="w-full border p-2 rounded-lg bg-indigo-50 font-bold text-sm text-indigo-800" readonly>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-gray-400 uppercase block mb-1">Order Date</label>
+                                <input type="date" name="custom_Order Date" id="so_order_date" class="w-full border p-2 rounded-lg bg-slate-50 outline-indigo-500 text-sm">
+                            </div>
+                        </div>
+                        
+                        <input type="text" id="so_customer" placeholder="Customer Name *" class="w-full border p-2.5 rounded-lg outline-indigo-500 font-bold text-sm">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" name="custom_Phone 1" placeholder="Phone 1" class="w-full border p-2 rounded-lg outline-indigo-500 text-sm">
+                            <input type="text" name="custom_Phone 2" placeholder="Phone 2 (Opt)" class="w-full border p-2 rounded-lg outline-indigo-500 text-sm">
+                        </div>
+                        
+                        <textarea name="custom_Address" placeholder="Customer Address..." class="w-full border p-2 rounded-lg h-16 outline-indigo-500 text-sm"></textarea>
+                        
+                        <div class="border border-slate-200 p-3 rounded-lg bg-slate-50">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Products</label>
+                            <div class="flex gap-1.5 mb-2">
+                                <input type="text" id="prodName" placeholder="Item Name" class="flex-1 border p-2 rounded outline-indigo-500 text-xs">
+                                <input type="number" id="prodQty" placeholder="Qty" class="w-14 border p-2 rounded outline-indigo-500 text-xs">
+                                <input type="number" id="prodPrice" placeholder="Price" class="w-20 border p-2 rounded outline-indigo-500 text-xs">
+                                <button type="button" onclick="addProductRow()" class="bg-indigo-100 text-indigo-700 px-3 rounded text-xs font-bold hover:bg-indigo-200 transition">Add</button>
+                            </div>
+                            <div id="prodListUI" class="space-y-1"></div>
+                            <input type="hidden" name="custom_Products" id="hiddenProductsStr">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[9px] font-bold text-gray-400 uppercase block mb-1">Total (₹)</label>
+                                <input type="number" name="custom_Total Amount" id="so_total" oninput="calcBal()" class="w-full border p-2 rounded-lg font-bold text-sm outline-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-green-500 uppercase block mb-1">Paid (₹)</label>
+                                <input type="number" name="custom_Paid Amount" id="so_paid" oninput="calcBal()" class="w-full border p-2 rounded-lg font-bold text-green-600 text-sm outline-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-red-400 uppercase block mb-1">Balance</label>
+                                <input type="number" name="custom_Balance" id="so_bal" class="w-full border p-2 rounded-lg bg-red-50 text-red-600 font-bold text-sm" readonly>
+                            </div>
+                        </div>
+                        
+                        <input type="text" name="custom_Reference" placeholder="Any Reference / Note..." class="w-full border p-2.5 rounded-lg outline-indigo-500 text-sm">
+                    </div>
+
+                    <div id="generalOptionsBlock" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border-t pt-4 border-slate-200">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Category</label>
+                            <select name="category_id" id="catSelect" class="w-full border p-2 rounded-lg bg-slate-50 outline-indigo-500 text-sm"></select>
+                        </div>
+                        <div class="bg-indigo-50 p-2 rounded-lg border border-indigo-100">
+                            <label class="text-[10px] font-black text-indigo-800 uppercase block mb-1">🔁 Recurrence</label>
+                            <select name="recurrence" class="w-full border p-1.5 rounded bg-white text-xs outline-indigo-500 font-bold text-indigo-900">
+                                <option value="none">One-time</option>
+                                <option value="day">Daily</option>
+                                <option value="week">Weekly</option>
+                                <option value="month">Monthly</option>
+                                <option value="year">Yearly</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="customFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border-t pt-4 border-slate-200">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Final Due Date</label>
+                            <input type="date" name="due_date" id="dueDateInput" class="w-full border p-2 rounded-lg bg-slate-50 outline-indigo-500 text-sm">
+                        </div>
+                        <div class="border border-dashed border-slate-300 p-2 rounded-lg bg-slate-50 flex flex-col justify-center">
+                            <label class="text-[10px] font-bold text-indigo-500 uppercase block mb-1">Attach Files</label>
+                            <input type="file" id="newTaskFiles" multiple class="hidden" onchange="addFilesToQueue(this, 'new')">
+                            <button type="button" onclick="document.getElementById('newTaskFiles').click()" class="bg-white border text-xs font-bold text-indigo-600 py-1.5 rounded-md shadow-sm hover:bg-indigo-50 transition">+ Select Files</button>
+                            <div id="newTaskFileList" class="mt-2 space-y-1"></div>
+                        </div>
+                    </div>
+                    
+                    <textarea name="description" id="sharedDescription" placeholder="General Notes / Narration..." class="w-full border p-2.5 rounded-lg bg-slate-50 h-20 outline-indigo-500 text-sm"></textarea>
+                    
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" onclick="closeModal('taskModal')" class="flex-1 py-2.5 text-slate-500 text-sm font-bold bg-slate-100 rounded-xl hover:bg-slate-200">Cancel</button>
+                        <button type="submit" class="flex-[2] bg-indigo-600 text-white py-2.5 text-sm rounded-xl font-bold shadow hover:bg-indigo-700" id="saveTaskBtn">Save Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="updateModal" class="fixed inset-0 bg-black/60 hidden z-[60] flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl max-h-[95vh] flex flex-col overflow-hidden relative">
+            
+            <div class="flex justify-between items-center p-4 md:px-6 border-b border-slate-100 bg-slate-50 shrink-0">
+                <h2 id="viewTitle" class="text-lg md:text-xl font-black leading-tight text-slate-800 truncate pr-4"></h2>
+                <button type="button" onclick="closeModal('updateModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-5 p-4 md:p-6 overflow-y-auto flex-1">
+                
+                <div class="flex-1">
+                    <div id="viewMeta" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div class="bg-slate-50 p-4 rounded-xl mb-5 border border-slate-200 shadow-sm">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-2">Original Notes / Narration</h4>
+                        <p id="viewDesc" class="text-sm text-slate-600 whitespace-pre-wrap mb-3 border-b border-slate-200 pb-3"></p>
+                        <div id="viewCustomData" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                    </div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-3">Lifecycle History</h4>
+                    <div id="historyTimeline" class="space-y-4 border-l-2 border-indigo-100 pl-4 pb-2"></div>
+                </div>
+
+                <div class="w-full md:w-72 bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col shrink-0 h-fit">
+                    <h3 class="font-bold mb-3 text-sm">Post Update Step</h3>
+                    <form id="updateForm" class="space-y-3 flex-1">
+                        <input type="hidden" name="task_id" id="updateId">
+                        <select name="status" id="statusSelect" class="w-full border p-2 rounded-lg bg-white outline-indigo-500 font-bold text-slate-700 text-sm"></select>
+
+                        <div id="deliveryMethodBlock" class="hidden bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                            <label class="text-[10px] font-black text-emerald-700 uppercase block mb-1">🚚 Delivery Details</label>
+                            <input type="text" id="deliveryMethodInput" placeholder="e.g. Courier Tracker..." class="w-full border p-2 rounded text-xs outline-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-indigo-500 uppercase block mb-1">Mini Due Date (Next Action)</label>
+                            <input type="date" name="mini_due_date" id="updateMiniDueDate" class="w-full border p-2 rounded-lg bg-white outline-indigo-500 text-sm font-bold text-indigo-700">
+                        </div>
+                        
+                        <textarea name="comment" class="w-full border p-2.5 rounded-lg bg-white h-20 text-sm outline-indigo-500 resize-y" placeholder="What happened?" required></textarea>
+                        
+                        <div class="border border-dashed border-slate-300 p-2.5 rounded-lg bg-white flex flex-col">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Attach Files</label>
+                            <input type="file" id="updateTaskFiles" multiple class="hidden" onchange="addFilesToQueue(this, 'update')">
+                            <button type="button" onclick="document.getElementById('updateTaskFiles').click()" class="bg-slate-100 border text-xs font-bold text-slate-600 py-1.5 rounded-md hover:bg-slate-200">+ Select Files</button>
+                            <div id="updateTaskFileList" class="mt-2 space-y-1"></div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold shadow hover:bg-indigo-700">Save Update</button>
+                            <button type="button" onclick="secureDeleteTask()" class="w-full bg-red-50 text-red-600 py-2 rounded-xl text-sm font-bold mt-2 hover:bg-red-100 border border-red-100">Delete Permanently</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="newCatModal" class="fixed inset-0 bg-black/70 hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                <h3 class="text-lg font-bold text-slate-700">New Category</h3>
+                <button type="button" onclick="closeModal('newCatModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="text" id="newCatName" placeholder="Category Name" class="w-full border p-2.5 rounded-lg outline-indigo-500 text-sm">
+                <input type="text" id="newCatFields" placeholder="Fields (Comma Separated)" class="w-full border p-2.5 rounded-lg outline-indigo-500 text-sm">
+                <button onclick="saveNewCategory()" class="w-full bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-green-700">Add Category</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="purgeModal" class="fixed inset-0 bg-black/80 hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                <h3 class="text-lg font-bold text-red-600">Purge Data</h3>
+                <button type="button" onclick="closeModal('purgeModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-xs text-gray-500 mb-5 font-bold tracking-wide">Permanent Deletion.</p>
+                <input type="date" id="purgeDate" class="w-full border p-2.5 rounded-lg mb-5 outline-red-500 text-sm">
+                <button onclick="runPurge()" class="w-full bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-red-700">Delete Before Date</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customDialogOverlay" class="fixed inset-0 bg-black/70 hidden z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
+            <div class="p-6 text-center">
+                <h3 id="dialogTitle" class="text-lg font-black mb-2 text-slate-800"></h3>
+                <p id="dialogMessage" class="text-sm text-slate-600 mb-5 whitespace-pre-wrap"></p>
+                <input type="text" id="dialogInput" class="hidden w-full border border-slate-300 p-3 rounded-xl outline-indigo-500 text-sm font-bold text-center bg-slate-50 focus:bg-white transition" autocomplete="off">
+            </div>
+            <div class="flex border-t border-slate-200 bg-slate-50">
+                <button id="dialogBtnCancel" class="flex-1 py-3.5 text-slate-500 font-bold text-sm border-r border-slate-200 hover:bg-slate-100 transition active:bg-slate-200">Cancel</button>
+                <button id="dialogBtnConfirm" class="flex-1 py-3.5 text-indigo-600 font-bold text-sm hover:bg-slate-100 transition active:bg-slate-200">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="app.js?v=5000"></script>
+</body>
+</html>

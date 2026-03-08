@@ -1,0 +1,19 @@
+.sticky-note { transition: all 0.2s ease; border-bottom-right-radius: 40px 10px; }
+.sticky-note:hover { transform: translateY(-5px) rotate(1deg); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* --- MODERN CALENDAR UI OVERRIDES --- */
+.fc-theme-standard .fc-scrollgrid, .fc-theme-standard th, .fc-theme-standard td { border-color: #e2e8f0; }
+.fc-theme-standard th { background-color: #f8fafc; padding: 12px 0; font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 800; }
+.fc .fc-button-primary { background-color: #4f46e5; border-color: #4f46e5; border-radius: 0.5rem; font-weight: 600; text-transform: capitalize; padding: 0.4rem 0.75rem; transition: all 0.2s; font-size: 0.875rem;}
+.fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #4338ca; border-color: #4338ca; box-shadow: none; }
+.fc .fc-button-primary:disabled { background-color: #c7d2fe; border-color: #c7d2fe; }
+.fc-toolbar-title { font-weight: 900; color: #1e293b; font-size: 1.25rem !important; }
+.fc-header-toolbar { flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem !important; }
+.fc-list { border-radius: 0.75rem; border: 1px solid #e2e8f0 !important; overflow: hidden; }
+.fc-list-day-cushion { background-color: #f1f5f9 !important; padding: 10px 14px !important; font-weight: 800; color: #475569; }
+.fc-list-event:hover td { background-color: #f8fafc; cursor: pointer; }
+.fc-list-event-title { font-weight: 700; color: #334155; padding: 14px 14px !important;}
+.fc-list-event-time { color: #64748b; padding: 14px 14px !important; }
+.fc-list-empty { background-color: #f8fafc; padding: 2rem !important; font-weight: bold; color: #94a3b8; border-radius: 0.75rem;}
