@@ -6,7 +6,7 @@
     <title>TaskTracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <link rel="stylesheet" href="style.css?v=5000">
+    <link rel="stylesheet" href="style.css?v=6000">
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
@@ -39,7 +39,7 @@
             <div id="boardView">
                 <div class="flex items-center border-b mb-5">
                     <div class="flex flex-1 gap-4 md:gap-6 text-[11px] md:text-xs font-bold text-gray-400 overflow-x-auto pb-2 whitespace-nowrap no-scrollbar" id="tabContainer">
-                        </div>
+                    </div>
                     <button onclick="openTabSettings()" class="pl-3 pb-2 text-slate-400 hover:text-indigo-600 shrink-0 border-l ml-2 text-sm" title="Customize Tabs">⚙️</button>
                 </div>
 
@@ -55,8 +55,7 @@
                 <h3 class="text-lg font-black text-slate-700">Visible Tabs</h3>
                 <button type="button" onclick="closeModal('tabSettingsModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
             </div>
-            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-2" id="tabChecklist">
-                </div>
+            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-2" id="tabChecklist"></div>
             <div class="p-4 border-t border-slate-100 bg-slate-50">
                 <button onclick="saveTabSettings()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700">Save Preferences</button>
             </div>
@@ -65,7 +64,6 @@
 
     <div id="taskModal" class="fixed inset-0 bg-black/60 hidden z-[60] flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl max-h-[95vh] flex flex-col overflow-hidden">
-            
             <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
                 <h2 class="text-lg font-black text-slate-700">Create Entry</h2>
                 <button type="button" onclick="closeModal('taskModal')" class="text-slate-400 hover:text-red-500 text-3xl leading-none">&times;</button>
@@ -95,16 +93,12 @@
                                 <input type="date" name="custom_Order Date" id="so_order_date" class="w-full border p-2 rounded-lg bg-slate-50 outline-indigo-500 text-sm">
                             </div>
                         </div>
-                        
                         <input type="text" id="so_customer" placeholder="Customer Name *" class="w-full border p-2.5 rounded-lg outline-indigo-500 font-bold text-sm">
-                        
                         <div class="grid grid-cols-2 gap-4">
                             <input type="text" name="custom_Phone 1" placeholder="Phone 1" class="w-full border p-2 rounded-lg outline-indigo-500 text-sm">
                             <input type="text" name="custom_Phone 2" placeholder="Phone 2 (Opt)" class="w-full border p-2 rounded-lg outline-indigo-500 text-sm">
                         </div>
-                        
                         <textarea name="custom_Address" placeholder="Customer Address..." class="w-full border p-2 rounded-lg h-16 outline-indigo-500 text-sm"></textarea>
-                        
                         <div class="border border-slate-200 p-3 rounded-lg bg-slate-50">
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Products</label>
                             <div class="flex gap-1.5 mb-2">
@@ -116,7 +110,6 @@
                             <div id="prodListUI" class="space-y-1"></div>
                             <input type="hidden" name="custom_Products" id="hiddenProductsStr">
                         </div>
-
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="text-[9px] font-bold text-gray-400 uppercase block mb-1">Total (₹)</label>
@@ -131,7 +124,6 @@
                                 <input type="number" name="custom_Balance" id="so_bal" class="w-full border p-2 rounded-lg bg-red-50 text-red-600 font-bold text-sm" readonly>
                             </div>
                         </div>
-                        
                         <input type="text" name="custom_Reference" placeholder="Any Reference / Note..." class="w-full border p-2.5 rounded-lg outline-indigo-500 text-sm">
                     </div>
 
@@ -171,7 +163,7 @@
                     
                     <div class="flex gap-2 pt-2">
                         <button type="button" onclick="closeModal('taskModal')" class="flex-1 py-2.5 text-slate-500 text-sm font-bold bg-slate-100 rounded-xl hover:bg-slate-200">Cancel</button>
-                        <button type="submit" class="flex-[2] bg-indigo-600 text-white py-2.5 text-sm rounded-xl font-bold shadow hover:bg-indigo-700" id="saveTaskBtn">Save Entry</button>
+                        <button type="submit" class="flex-[2] bg-indigo-600 text-white py-2.5 text-sm rounded-xl font-bold shadow hover:bg-indigo-700">Save Entry</button>
                     </div>
                 </form>
             </div>
@@ -187,7 +179,6 @@
             </div>
 
             <div class="flex flex-col md:flex-row gap-5 p-4 md:p-6 overflow-y-auto flex-1">
-                
                 <div class="flex-1">
                     <div id="viewMeta" class="flex flex-wrap gap-2 mb-4"></div>
                     <div class="bg-slate-50 p-4 rounded-xl mb-5 border border-slate-200 shadow-sm">
@@ -200,7 +191,7 @@
                 </div>
 
                 <div class="w-full md:w-72 bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col shrink-0 h-fit">
-                    <h3 class="font-bold mb-3 text-sm">Post Update Step</h3>
+                    <h3 class="font-bold mb-3 text-sm pr-4">Post Update Step</h3>
                     <form id="updateForm" class="space-y-3 flex-1">
                         <input type="hidden" name="task_id" id="updateId">
                         <select name="status" id="statusSelect" class="w-full border p-2 rounded-lg bg-white outline-indigo-500 font-bold text-slate-700 text-sm"></select>
@@ -262,8 +253,21 @@
         </div>
     </div>
 
-    <div id="customDialogOverlay" class="fixed inset-0 bg-black/70 hidden z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
+    <div id="imagePreviewModal" class="fixed inset-0 bg-black/95 hidden z-[250] flex flex-col items-center justify-center p-4 backdrop-blur-md">
+        <div class="w-full max-w-4xl flex justify-between items-center mb-4">
+            <a id="downloadPreviewBtn" href="#" download class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:bg-indigo-700 flex items-center gap-2 transition">
+                <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                Download
+            </a>
+            <button type="button" onclick="closeModal('imagePreviewModal')" class="text-white/70 hover:text-red-500 text-4xl leading-none transition">&times;</button>
+        </div>
+        <div class="w-full max-w-4xl flex-1 flex items-center justify-center overflow-hidden">
+            <img id="previewImage" src="" alt="Preview" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <div id="customDialogOverlay" class="fixed inset-0 bg-black/70 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
             <div class="p-6 text-center">
                 <h3 id="dialogTitle" class="text-lg font-black mb-2 text-slate-800"></h3>
                 <p id="dialogMessage" class="text-sm text-slate-600 mb-5 whitespace-pre-wrap"></p>
@@ -277,6 +281,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script src="app.js?v=5000"></script>
+    <script src="app.js?v=6000"></script>
 </body>
 </html>
