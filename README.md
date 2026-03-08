@@ -42,11 +42,12 @@ Because this app uses SQLite, installation is incredibly simple. It can run on a
 
 3. Configure Security (CRITICAL): 
    Open api.php and change the default login credentials and upload directory:
+   
    $USER = 'your_secure_username'; 
    $PASS = 'your_secure_password';  
    $UPLOAD_DIR = 'your_hidden_upload_folder/';
 
-4. Set Permissions: Ensure the server has write permissions (CHMOD 755 or 777 depending on your host) for the root folder so PHP can create the tasks.db file and    the uploads directory automatically on first run.
+5. Set Permissions: Ensure the server has write permissions (CHMOD 755 or 777 depending on your host) for the root folder so PHP can create the tasks.db file and    the uploads directory automatically on first run.
 
 🤝 Contributing
 Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
